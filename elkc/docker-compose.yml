@@ -1,0 +1,48 @@
+version: '2'
+
+services:
+  elasticsearch:
+    container_name: elasticsearch
+    build: elasticsearch/
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/config:/usr/share/elasticsearch/config
+      - ./elasticsearch/logs:/usr/share/elasticsearch/logs
+      - ./elasticsearch/snapshots:/usr/share/elasticsearch/snapshots
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+    tty: true
+    networks:
+      - docker
+  kibana:
+    container_name: kibana
+    image: kibana:5.6.16
+    volumes:
+      - ./kibana/config/kibana.yml:/etc/kibana/kibana.yml
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+    tty: true
+    networks:
+      - docker
+  cerebro:
+    container_name: cerebro
+    image: yannart/cerebro:0.5.0
+    volumes:
+      - ./cerebro/config/conf:/opt/cerebro/conf
+      - ./cerebro/logs:/opt/cerebro/logs
+    depends_on:
+      - elasticsearch
+    ports:
+      - 9000:9000
+    tty: true
+    networks:
+      - docker
+
+networks:
+  docker:
+    driver: bridge

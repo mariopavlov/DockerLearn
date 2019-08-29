@@ -1,0 +1,16 @@
+version: '2'
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-CTP3.2-ubuntu
+    volumes:
+      - mssql_server_data:/var/opt/mssql
+    container_name: mssql
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "wT%4x0sYdgD2Kjfch"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
+
+volumes:
+  mssql_server_data:

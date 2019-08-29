@@ -1,0 +1,1 @@
+FROM mcr.microsoft.com/mssql/server:2019-CTP3.2-ubuntu
