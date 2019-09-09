@@ -1,28 +1,76 @@
 version: '3'
 
 services:
+  # Elastic Cluster
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.16
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
     container_name: elasticsearch
     environment:
-      - node.name=5616_mario_es
+      - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
-      - xpack.security.enabled=false
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - esdata1:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
-    tty: true
     networks:
       - docker
+  elasticsearch2:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
+    container_name: elasticsearch2
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "discovery.zen.ping.unicast.hosts=elasticsearch"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata2:/usr/share/elasticsearch/data
+    networks:
+      - docker
+  elasticsearch3:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
+    container_name: elasticsearch3
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "discovery.zen.ping.unicast.hosts=elasticsearch"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata3:/usr/share/elasticsearch/data
+    networks:
+      - docker
+
+  # Head Plugin
+  headPlugin:
+    image: 'mobz/elasticsearch-head:5'
+    container_name: head
+    ports:
+      - '9100:9100'
+    networks:
+      - docker
+  
+  # Kibana
   kibana:
     container_name: kibana
-    image: kibana:5.6.16
+    image: docker.elastic.co/kibana/kibana:6.2.4
     volumes:
       - ./kibana/config/kibana.yml:/etc/kibana/kibana.yml
     depends_on:
@@ -32,6 +80,8 @@ services:
     tty: true
     networks:
       - docker
+  
+  # Cerebro
   cerebro:
     container_name: cerebro
     image: yannart/cerebro:0.5.0
@@ -45,17 +95,28 @@ services:
     tty: true
     networks:
       - docker
+  
+  # Logstash
   logstash:
-    image: logstash:5.6.16
+    container_name: logstash
+    image: logstash:6.8.3
     links:
-    - elasticsearch
+      - elasticsearch
     depends_on:
-    - elasticsearch
+      - elasticsearch
+    ports:
+      - 9600:9600
+    networks:
+      - docker
 
 volumes:
-  esdata:
+  esdata1:
+    driver: local
+  esdata2:
+    driver: local
+  esdata3:
     driver: local
 
 networks:
   docker:
-    driver: bridge
+    driver: bridge    
